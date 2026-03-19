@@ -2,11 +2,17 @@
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, __APP_NAME__);
+    rclcpp::init(argc, argv);
 
-	ROSMultiLidarCalibratorApp app;
+    auto node = std::make_shared<ROSMultiLidarCalibratorApp>();
 
-	app.Run();
+    RCLCPP_INFO(node->get_logger(), "Node started");
 
-	return 0;
+    rclcpp::spin(node);
+
+    rclcpp::shutdown();
+
+    RCLCPP_INFO(node->get_logger(), "Node shutdown");
+
+    return 0;
 }

@@ -1,65 +1,104 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.8)
 project(multi_lidar_calibrator)
 
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-        roscpp
-        std_msgs
-        sensor_msgs
-        geometry_msgs
-        pcl_ros
-        pcl_conversions
-        )
+# Find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(PCL REQUIRED)
 
-catkin_package(CATKIN_DEPENDS
-        std_msgs
-        sensor_msgs
-        geometry_msgs
-        )
-
-find_package(OpenCV REQUIRED)
+set(CMAKE_CXX_STANDARD 17)
 
 ###########
 ## Build ##
 ###########
 
-include_directories(
-        ${catkin_INCLUDE_DIRS}
-        include
+# MultiLidar Calibrator Library
+add_library(multi_lidar_calibrator_lib SHARED
+    src/multi_lidar_calibrator.cpp
 )
 
-SET(CMAKE_CXX_FLAGS "-O2 -g -Wall ${CMAKE_CXX_FLAGS}")
-SET(CMAKE_CXX_STANDARD 14)
-
-# MultiLidar Calibrator
-add_library(multi_lidar_calibrator_lib SHARED
-        src/multi_lidar_calibrator.cpp
-        include/multi_lidar_calibrator.h)
-
-target_include_directories(multi_lidar_calibrator_lib PRIVATE
-        ${OpenCV_INCLUDE_DIRS}
-        )
+target_include_directories(multi_lidar_calibrator_lib PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${PCL_INCLUDE_DIRS}
+)
 
 target_link_libraries(multi_lidar_calibrator_lib
-        ${catkin_LIBRARIES}
-        )
+    ${PCL_LIBRARIES}
+)
 
+ament_target_dependencies(multi_lidar_calibrator_lib
+    rclcpp
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    pcl_ros
+    pcl_conversions
+    tf2
+    tf2_ros
+    tf2_eigen
+    message_filters
+)
+
+# MultiLidar Calibrator Node
 add_executable(multi_lidar_calibrator
-        src/multi_lidar_calibrator_node.cpp
-        )
+    src/multi_lidar_calibrator_node.cpp
+)
 
 target_include_directories(multi_lidar_calibrator PRIVATE
-        include)
+    include
+    ${PCL_INCLUDE_DIRS}
+)
 
 target_link_libraries(multi_lidar_calibrator
-        multi_lidar_calibrator_lib)
+    multi_lidar_calibrator_lib
+    ${PCL_LIBRARIES}
+)
 
-# install(TARGETS
-#         multi_lidar_calibrator multi_lidar_calibrator_lib
-#         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+ament_target_dependencies(multi_lidar_calibrator
+    rclcpp
+)
 
-# install(DIRECTORY launch/
-#         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-#         PATTERN ".svn" EXCLUDE)
+#############
+## Install ##
+#############
+
+install(TARGETS
+    multi_lidar_calibrator
+    multi_lidar_calibrator_lib
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY include/
+    DESTINATION include
+)
+
+install(DIRECTORY launch/
+    DESTINATION share/${PROJECT_NAME}/launch
+)
+
+install(DIRECTORY cfg/
+    DESTINATION share/${PROJECT_NAME}/cfg
+)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()
