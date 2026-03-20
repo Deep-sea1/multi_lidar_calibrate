@@ -48,14 +48,14 @@ sudo apt install -y \
 
 ## 安装步骤
 
-### 1. 创建工作空间（如果没有）
+### 1. 创建工作空间
 
 ```bash
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 ```
 
-### 2. 克隆或复制代码
+### 2. 克隆
 
 将 `multi_lidar_calibrator` 包复制到 `src` 目录下。
 
