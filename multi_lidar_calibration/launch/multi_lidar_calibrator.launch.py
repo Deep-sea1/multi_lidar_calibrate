@@ -31,7 +31,7 @@ def generate_launch_description():
 
     voxel_size_arg = DeclareLaunchArgument(
         'voxel_size',
-        default_value='0.1',
+        default_value='0.05',
         description='Voxel size for downsampling'
     )
 
@@ -49,13 +49,13 @@ def generate_launch_description():
 
     ndt_resolution_arg = DeclareLaunchArgument(
         'ndt_resolution',
-        default_value='0.5',
+        default_value='0.4',
         description='NDT resolution'
     )
 
     ndt_iterations_arg = DeclareLaunchArgument(
         'ndt_iterations',
-        default_value='100',
+        default_value='95',
         description='NDT maximum iterations'
     )
 
