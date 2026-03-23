@@ -1,9 +1,12 @@
 #include "multi_lidar_calibrator.h"
+#include <limits>
 
 ROSMultiLidarCalibratorApp::ROSMultiLidarCalibratorApp()
     : Node(__APP_NAME__)
 {
     current_guess_ = Eigen::Matrix4f::Identity();
+    best_transformation_ = Eigen::Matrix4f::Identity();
+    best_fitness_score_ = std::numeric_limits<double>::max();
     in_parent_cloud_ = nullptr;
     in_child_cloud_ = nullptr;
     in_child_filtered_cloud_ = nullptr;
@@ -74,30 +77,40 @@ void ROSMultiLidarCalibratorApp::PerformNdtOptimize()
 
     ndt.align(*output_cloud, current_guess_);
 
-    std::cout << "Normal Distributions Transform converged:" << ndt.hasConverged()
-              << " score: " << ndt.getFitnessScore() << " prob:" << ndt.getTransformationProbability() << std::endl;
-    std::cout << "transformation from " << child_frame_ << " to " << parent_frame_ << std::endl;
+    double current_fitness_score = ndt.getFitnessScore();
+
+    // 只有当配准得分更好（更小）时才打印
+    if (ndt.hasConverged() && current_fitness_score < best_fitness_score_) {
+        best_fitness_score_ = current_fitness_score;
+        best_transformation_ = ndt.getFinalTransformation();
+
+        std::cout << "========== Best Registration Found ==========" << std::endl;
+        std::cout << "Normal Distributions Transform converged:" << ndt.hasConverged()
+                  << " score: " << current_fitness_score << " prob:" << ndt.getTransformationProbability() << std::endl;
+        std::cout << "transformation from " << child_frame_ << " to " << parent_frame_ << std::endl;
+
+        Eigen::Matrix3f rotation_matrix = best_transformation_.block(0, 0, 3, 3);
+        Eigen::Vector3f translation_vector = best_transformation_.block(0, 3, 3, 1);
+
+        std::cout << "This transformation can be replicated using:" << std::endl;
+        std::cout << "ros2 run tf2_ros static_transform_publisher --x " << translation_vector(0)
+                  << " --y " << translation_vector(1)
+                  << " --z " << translation_vector(2)
+                  << " --yaw " << rotation_matrix.eulerAngles(2, 1, 0)(0)
+                  << " --pitch " << rotation_matrix.eulerAngles(2, 1, 0)(1)
+                  << " --roll " << rotation_matrix.eulerAngles(2, 1, 0)(2)
+                  << " --frame-id " << parent_frame_
+                  << " --child-frame-id " << child_frame_ << std::endl;
+
+        std::cout << "Corresponding transformation matrix:" << std::endl
+                  << std::endl << best_transformation_ << std::endl;
+        std::cout << "==============================================" << std::endl << std::endl;
+    }
 
     // Transforming unfiltered, input cloud using found transform.
     pcl::transformPointCloud(*in_child_cloud_, *output_cloud, ndt.getFinalTransformation());
 
     current_guess_ = ndt.getFinalTransformation();
-
-    Eigen::Matrix3f rotation_matrix = current_guess_.block(0, 0, 3, 3);
-    Eigen::Vector3f translation_vector = current_guess_.block(0, 3, 3, 1);
-
-    std::cout << "This transformation can be replicated using:" << std::endl;
-    std::cout << "ros2 run tf2_ros static_transform_publisher --x " << translation_vector(0)
-              << " --y " << translation_vector(1)
-              << " --z " << translation_vector(2)
-              << " --yaw " << rotation_matrix.eulerAngles(2, 1, 0)(0)
-              << " --pitch " << rotation_matrix.eulerAngles(2, 1, 0)(1)
-              << " --roll " << rotation_matrix.eulerAngles(2, 1, 0)(2)
-              << " --frame-id " << parent_frame_
-              << " --child-frame-id " << child_frame_ << std::endl;
-
-    std::cout << "Corresponding transformation matrix:" << std::endl
-              << std::endl << current_guess_ << std::endl << std::endl;
 
     PublishCloud(output_cloud);
 

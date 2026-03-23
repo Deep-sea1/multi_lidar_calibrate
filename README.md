@@ -27,10 +27,6 @@
 
 - **操作系统**: Ubuntu 22.04
 - **ROS 版本**: ROS2 Humble
-- **依赖库**:
-  - PCL (Point Cloud Library)
-  - TF2
-  - message_filters
 
 ### 安装依赖
 
@@ -203,7 +199,7 @@ Corresponding transformation matrix:
 
 ```bash
 # 终端 1: 启动 Livox 驱动
-ros2 launch livox_ros2_driver livox_lidar_launch.py
+ros2 launch livox_ros2_driver rviz_MID360_launch.py
 
 # 终端 2: 启动标定程序
 ros2 launch multi_lidar_calibrator multi_lidar_calibrator.launch.py \

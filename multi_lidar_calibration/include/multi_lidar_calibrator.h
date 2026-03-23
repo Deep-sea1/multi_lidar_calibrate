@@ -66,6 +66,8 @@ private:
     std::string child_frame_;
 
     Eigen::Matrix4f current_guess_;
+    Eigen::Matrix4f best_transformation_;
+    double best_fitness_score_;
 
     typedef pcl::PointXYZ PointT;
 
