@@ -151,12 +151,6 @@ rviz2
 - 话题名称为 `/livox/lidar_192_168_1_118`
 - 初始位姿估计：x=-0.09m, y=-0.25m, z=-0.25m, yaw=-0.6536rad, pitch=0.54rad, roll=1.4444rad
 
-### 获取初始位姿估计
-
-初始位姿可以通过以下方式获得：
-1. **实际测量**: 使用卷尺测量激光雷达之间的相对位置
-2. **CAD 图纸**: 从安装图纸中获取设计值
-3. **粗略估计**: 目视估计大致位置（精度要求不高时）
 
 ## 输出结果
 
@@ -209,30 +203,6 @@ ros2 launch multi_lidar_calibrator multi_lidar_calibrator.launch.py \
 # 终端 3: 启动 RViz 可视化
 rviz2
 ```
-
-### 示例 2: 自定义 NDT 参数
-
-```bash
-ros2 launch multi_lidar_calibrator multi_lidar_calibrator.launch.py \
-    points_parent_src:=/lidar_front \
-    points_child_src:=/lidar_rear \
-    voxel_size:=0.05 \
-    ndt_resolution:=0.3 \
-    ndt_iterations:=200
-```
-
-### 示例 3: 使用标定结果发布静态 TF
-
-标定完成后，复制终端输出的 `static_transform_publisher` 命令：
-
-```bash
-ros2 run tf2_ros static_transform_publisher \
-    --x 0.1234 --y -0.5678 --z 0.0912 \
-    --yaw 0.1234 --pitch 0.0567 --roll 1.5708 \
-    --frame-id lidar_front --child-frame-id lidar_rear
-```
-
-或者将参数写入 launch 文件中永久使用。
 
 ## 标定流程
 
