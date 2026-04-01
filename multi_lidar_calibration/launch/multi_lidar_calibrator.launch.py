@@ -53,10 +53,58 @@ def generate_launch_description():
         description='NDT resolution'
     )
 
+    use_multi_resolution_arg = DeclareLaunchArgument(
+        'use_multi_resolution',
+        default_value='true',
+        description='Enable coarse-to-fine NDT pyramid'
+    )
+
     ndt_iterations_arg = DeclareLaunchArgument(
         'ndt_iterations',
         default_value='95',
         description='NDT maximum iterations'
+    )
+
+    max_fitness_score_arg = DeclareLaunchArgument(
+        'max_fitness_score',
+        default_value='1.0',
+        description='Reject if NDT fitness exceeds this value'
+    )
+
+    max_correspondence_distance_arg = DeclareLaunchArgument(
+        'max_correspondence_distance',
+        default_value='1.0',
+        description='Max correspondence distance used by robust scoring'
+    )
+
+    min_inlier_ratio_arg = DeclareLaunchArgument(
+        'min_inlier_ratio',
+        default_value='0.25',
+        description='Reject if inlier ratio is lower than this threshold'
+    )
+
+    min_transform_probability_arg = DeclareLaunchArgument(
+        'min_transform_probability',
+        default_value='0.02',
+        description='Reject if NDT transform probability is too low'
+    )
+
+    max_translation_jump_arg = DeclareLaunchArgument(
+        'max_translation_jump',
+        default_value='0.8',
+        description='Reject if one-step translation jump is too large (meters)'
+    )
+
+    max_rotation_jump_deg_arg = DeclareLaunchArgument(
+        'max_rotation_jump_deg',
+        default_value='12.0',
+        description='Reject if one-step rotation jump is too large (degrees)'
+    )
+
+    max_rejections_before_reset_arg = DeclareLaunchArgument(
+        'max_rejections_before_reset',
+        default_value='20',
+        description='Reset guess to configured initial transform after this many rejections'
     )
 
     # Node
@@ -73,7 +121,15 @@ def generate_launch_description():
             'ndt_epsilon': LaunchConfiguration('ndt_epsilon'),
             'ndt_step_size': LaunchConfiguration('ndt_step_size'),
             'ndt_resolution': LaunchConfiguration('ndt_resolution'),
+            'use_multi_resolution': LaunchConfiguration('use_multi_resolution'),
             'ndt_iterations': LaunchConfiguration('ndt_iterations'),
+            'max_fitness_score': LaunchConfiguration('max_fitness_score'),
+            'max_correspondence_distance': LaunchConfiguration('max_correspondence_distance'),
+            'min_inlier_ratio': LaunchConfiguration('min_inlier_ratio'),
+            'min_transform_probability': LaunchConfiguration('min_transform_probability'),
+            'max_translation_jump': LaunchConfiguration('max_translation_jump'),
+            'max_rotation_jump_deg': LaunchConfiguration('max_rotation_jump_deg'),
+            'max_rejections_before_reset': LaunchConfiguration('max_rejections_before_reset'),
         }]
     )
 
@@ -85,6 +141,14 @@ def generate_launch_description():
         ndt_epsilon_arg,
         ndt_step_size_arg,
         ndt_resolution_arg,
+        use_multi_resolution_arg,
         ndt_iterations_arg,
+        max_fitness_score_arg,
+        max_correspondence_distance_arg,
+        min_inlier_ratio_arg,
+        min_transform_probability_arg,
+        max_translation_jump_arg,
+        max_rotation_jump_deg_arg,
+        max_rejections_before_reset_arg,
         multi_lidar_calibrator_node,
     ])

@@ -52,6 +52,8 @@ private:
     double ndt_epsilon_;
     double ndt_step_size_;
     double ndt_resolution_;
+    std::vector<double> ndt_resolution_levels_;
+    bool use_multi_resolution_;
 
     double initial_x_;
     double initial_y_;
@@ -61,13 +63,25 @@ private:
     double initial_yaw_;
 
     int ndt_iterations_;
+    int max_rejections_before_reset_;
+    int consecutive_rejections_;
 
     std::string parent_frame_;
     std::string child_frame_;
 
     Eigen::Matrix4f current_guess_;
+    Eigen::Matrix4f configured_initial_guess_;
     Eigen::Matrix4f best_transformation_;
     double best_fitness_score_;
+    double best_robust_score_;
+    bool has_initialized_guess_;
+
+    double max_fitness_score_;
+    double min_inlier_ratio_;
+    double min_transform_probability_;
+    double max_correspondence_distance_;
+    double max_translation_jump_;
+    double max_rotation_jump_deg_;
 
     typedef pcl::PointXYZ PointT;
 
@@ -80,6 +94,7 @@ private:
     std::shared_ptr<message_filters::Synchronizer<SyncPolicyT>> cloud_synchronizer_;
 
     pcl::PointCloud<PointT>::Ptr in_parent_cloud_;
+    pcl::PointCloud<PointT>::Ptr in_parent_filtered_cloud_;
     pcl::PointCloud<PointT>::Ptr in_child_cloud_;
     pcl::PointCloud<PointT>::Ptr in_child_filtered_cloud_;
 
@@ -113,6 +128,21 @@ private:
     void PublishCloud(pcl::PointCloud<PointT>::ConstPtr in_cloud_to_publish_ptr);
 
     void MatrixToTransform(const Eigen::Matrix4f& matrix, geometry_msgs::msg::TransformStamped& transform_stamped);
+
+    Eigen::Matrix4f BuildConfiguredInitialGuess() const;
+
+    std::vector<double> GetNdtResolutionLevels() const;
+
+    double ComputeInlierRatio(const pcl::PointCloud<PointT>::ConstPtr& source_cloud,
+                              const pcl::PointCloud<PointT>::ConstPtr& target_cloud,
+                              double max_correspondence_distance) const;
+
+    bool IsTransformJumpAcceptable(const Eigen::Matrix4f& previous_transform,
+                                   const Eigen::Matrix4f& candidate_transform,
+                                   double* translation_jump,
+                                   double* rotation_jump_deg) const;
+
+    double ComputeRobustScore(double fitness_score, double inlier_ratio, double transform_probability) const;
 
     void PerformNdtOptimize();
 
